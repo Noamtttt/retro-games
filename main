@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Snake Game Online - Retro Arcade</title>
+    <meta name="description" content="Play the classic Snake game online for free. No download needed. Just like the original Nokia phone game!">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4caf50, #2e7d32);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        header h1 {
+            margin: 0;
+        }
+        
+        nav {
+            padding: 10px;
+            background-color: #333;
+            text-align: center;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .game-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 2rem;
+        }
+        
+        .game-area {
+            border: 4px solid #333;
+            width: 320px;
+            background-color: #222;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        canvas {
+            background-color: #aed581;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #388e3c;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            margin: 10px 0;
+        }
+        
+        .game-instructions {
+            max-width: 400px;
+        }
+        
+        .game-instructions h2 {
+            color: #4caf50;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #333;
+            color: white;
+            margin-top: auto;
+        }
+        
+        /* Ad space styling */
+        .ad-space {
+            background-color: #f9f9f9;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+            text-align: center;
+            width: 100%;
+            max-width: 728px;
+        }
+        
+        .ad-space p {
+            margin: 0;
+            color: #888;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .game-area {
+                width: 300px;
+            }
+            
+            canvas {
+                width: 280px;
+                height: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Snake Game</h1>
+    </header>
+    
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="#">Games</a>
+        <a href="#">About</a>
+    </nav>
+    
+    <div class="container">
+        <!-- Top Ad Space -->
+        <div class="ad-space">
+            <p>Advertisement Space</p>
+            <!-- Google AdSense code will go here once approved -->
+        </div>
+        
+        <div class="game-container">
+            <div class="game-area">
+                <h2 style="text-align: center; color: white; margin: 0 0 10px 0;">SNAKE</h2>
+                <canvas id="gameCanvas" width="300" height="300"></canvas>
+                <div class="game-info">
+                    <div>Score: <span id="score">0</span></div>
+                    <div>High Score: <span id="highScore">0</span></div>
+                </div>
+                <div class="controls">
+                    <button id="startBtn">Start Game</button>
+                    <button id="leftBtn">←</button>
+                    <button id="upBtn">↑</button>
+                    <button id="downBtn">↓</button>
+                    <button id="rightBtn">→</button>
+                </div>
+            </div>
+            
+            <div class="game-instructions">
+                <h2>How to Play</h2>
+                <p>Control the snake with arrow keys or direction buttons.</p>
+                <ul>
+                    <li>Eat the red food to grow longer</li>
+                    <li>Avoid hitting the walls or your own tail</li>
+                    <li>The game speeds up as you eat more food</li>
+                    <li>Press Start to begin a new game</li>
+                </ul>
+                <p>This classic Snake game is inspired by the iconic Nokia mobile phone game that millions of people enjoyed in the 1990s and early 2000s.</p>
+            </div>
+        </div>
+        
+        <!-- Bottom Ad Space -->
+        <div class="ad-space">
+            <p>Advertisement Space</p>
+            <!-- Google AdSense code will go here once approved -->
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Retro Arcade | <a href="#" style="color: white;">Privacy Policy</a></p>
+    </footer>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game variables
+        const gridSize = 15;
+        const cellSize = canvas.width / gridSize;
+        let snake = [{x: 7, y: 7}, {x: 6, y: 7}, {x: 5, y: 7}];
+        let food = {x: 10, y: 10};
+        let direction = 'right';
+        let newDirection = 'right';
+        let gameRunning = false;
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameSpeed = 150;
+        let gameLoop;
+        
+        // Update high score display
+        document.getElementById('highScore').textContent = highScore;
+        
+        // Draw functions
+        function drawSnakePart(x, y, head = false) {
+            ctx.fillStyle = head ? '#006400' : '#228B22';
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            ctx.strokeStyle = '#aed581';
+            ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+        
+        function drawFood() {
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc((food.x + 0.5) * cellSize, (food.y + 0.5) * cellSize, cellSize/2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function clearCanvas() {
+            ctx.fillStyle = '#aed581';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#8BC34A';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < gridSize; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize, 0);
+                ctx.lineTo(i * cellSize, canvas.height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellSize);
+                ctx.lineTo(canvas.width, i * cellSize);
+                ctx.stroke();
+            }
+        }
+        
+        function draw() {
+            clearCanvas();
+            
+            // Draw snake
+            for (let i = 0; i < snake.length; i++) {
+                drawSnakePart(snake[i].x, snake[i].y, i === 0);
+            }
+            
+            // Draw food
+            drawFood();
+        }
+        
+        // Game logic
+        function updateGame() {
+            // Update direction
+            direction = newDirection;
+            
+            // Get current head position
+            const head = {...snake[0]};
+            
+            // Move head based on direction
+            switch(direction) {
+                case 'up': head.y--; break;
+                case 'down': head.y++; break;
+                case 'left': head.x--; break;
+                case 'right': head.x++; break;
+            }
+            
+            // Wall collision (wrap around)
+            if (head.x < 0) head.x = gridSize - 1;
+            if (head.x >= gridSize) head.x = 0;
+            if (head.y < 0) head.y = gridSize - 1;
+            if (head.y >= gridSize) head.y = 0;
+            
+            // Check for self collision
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Add new head
+            snake.unshift(head);
+            
+            // Check for food collision
+            if (head.x === food.x && head.y === food.y) {
+                // Increase score
+                score += 10;
+                document.getElementById('score').textContent = score;
+                
+                // Update high score
+                if (score > highScore) {
+                    highScore = score;
+                    document.getElementById('highScore').textContent = highScore;
+                    localStorage.setItem('snakeHighScore', highScore);
+                }
+                
+                // Create new food
+                createFood();
+                
+                // Increase speed
+                gameSpeed = Math.max(50, gameSpeed - 5);
+                clearInterval(gameLoop);
+                gameLoop = setInterval(updateGame, gameSpeed);
+            } else {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+            
+            // Update canvas
+            draw();
+        }
+        
+        function createFood() {
+            // Generate random position for food
+            let validPosition = false;
+            while (!validPosition) {
+                food = {
+                    x: Math.floor(Math.random() * gridSize),
+                    y: Math.floor(Math.random() * gridSize)
+                };
+                
+                // Check if food is not on snake
+                validPosition = true;
+                for (let i = 0; i < snake.length; i++) {
+                    if (snake[i].x === food.x && snake[i].y === food.y) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        function startGame() {
+            if (gameRunning) return;
+            
+            // Reset game state
+            snake = [{x: 7, y: 7}, {x: 6, y: 7}, {x: 5, y: 7}];
+            direction = 'right';
+            newDirection = 'right';
+            score = 0;
+            gameSpeed = 150;
+            document.getElementById('score').textContent = '0';
+            
+            createFood();
+            draw();
+            
+            gameRunning = true;
+            document.getElementById('startBtn').textContent = 'Restart';
+            gameLoop = setInterval(updateGame, gameSpeed);
+        }
+        
+        function gameOver() {
+            clearInterval(gameLoop);
+            gameRunning = false;
+            
+            // Game over message
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = '16px Arial';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
+            ctx.fillText('Click Start to play again', canvas.width / 2, canvas.height / 2 + 40);
+            
+            document.getElementById('startBtn').textContent = 'Play Again';
+        }
+        
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        
+        document.getElementById('upBtn').addEventListener('click', () => {
+            if (direction !== 'down') newDirection = 'up';
+        });
+        
+        document.getElementById('downBtn').addEventListener('click', () => {
+            if (direction !== 'up') newDirection = 'down';
+        });
+        
+        document.getElementById('leftBtn').addEventListener('click', () => {
+            if (direction !== 'right') newDirection = 'left';
+        });
+        
+        document.getElementById('rightBtn').addEventListener('click', () => {
+            if (direction !== 'left') newDirection = 'right';
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (direction !== 'down') newDirection = 'up';
+                    break;
+                case 'ArrowDown':
+                    if (direction !== 'up') newDirection = 'down';
+                    break;
+                case 'ArrowLeft':
+                    if (direction !== 'right') newDirection = 'left';
+                    break;
+                case 'ArrowRight':
+                    if (direction !== 'left') newDirection = 'right';
+                    break;
+            }
+        });
+        
+        // Initial draw
+        createFood();
+        draw();
+    </script>
+</body>
+</html>
